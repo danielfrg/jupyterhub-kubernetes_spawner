@@ -91,9 +91,7 @@ class KubernetesSpawner(Spawner):
             new_pod.add_container(container)
 
             self.client.launch_pod(new_pod)
-            self.log.debug(11111)
             pod = yield self.wait_for_new_pod()
-            self.log.debug(22222)
         else:
             self.log.debug("Pod '%s' FOUND", self.pod_name)
 
