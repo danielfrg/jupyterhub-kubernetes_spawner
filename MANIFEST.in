@@ -1,0 +1,2 @@
+include versioneer.py
+include kubernetes_spawner/_version.py
