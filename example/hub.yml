@@ -12,13 +12,9 @@ data:
     c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'
     c.LDAPAuthenticator.bind_dn_template = 'cn={username},cn=jupyterhub,dc=example,dc=org'
     # c.LDAPAuthenticator.server_address = '{{ LDAP_SERVICE_IP }}'
-    c.LDAPAuthenticator.server_address = '10.103.250.93'
     c.LDAPAuthenticator.use_ssl = False
 
     c.JupyterHub.spawner_class = 'kubernetes_spawner.KubernetesSpawner'
-    c.KubernetesSpawner.host = 'https://104.198.254.64'
-    c.KubernetesSpawner.username = 'admin'
-    c.KubernetesSpawner.password = 'b7aEMDJZBdoIZNGv'
     # c.KubernetesSpawner.host = '{{ KUBE_HOST }}'
     # c.KubernetesSpawner.username = '{{ KUBE_USER }}'
     # c.KubernetesSpawner.password = '{{ KUBE_PASS }}'
@@ -28,7 +24,6 @@ data:
     c.Spawner.notebook_dir = '/mnt/notebooks/%U'
     c.KubernetesSpawner.persistent_volume_claim_name = 'jupyterhub-nfs'
     c.KubernetesSpawner.persistent_volume_claim_path = "/mnt"
-    c.KubernetesSpawner.container_command = "mkdir -p /mnt/notebooks/{username} && sh /srv/singleuser/singleuser.sh"
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
