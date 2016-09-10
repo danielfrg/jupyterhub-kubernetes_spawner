@@ -5,8 +5,10 @@ metadata:
   name: jupyterhub-config-py
 data:
   jupyterhub-config.py: |-
+    c.JupyterHub.confirm_no_ssl = True
     c.JupyterHub.db_url = 'sqlite:////tmp/jupyterhub.sqlite'
     c.JupyterHub.cookie_secret_file = '/tmp/jupyterhub_cookie_secret'
+    c.Spawner.notebook_dir = '/mnt/notebooks/%U'
 
     c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'
     c.LDAPAuthenticator.bind_dn_template = 'cn={username},cn=jupyterhub,dc=example,dc=org'
@@ -24,6 +26,7 @@ data:
     c.KubernetesSpawner.verify_ssl = False
     c.KubernetesSpawner.hub_ip_from_service = 'jupyterhub'
     c.KubernetesSpawner.persistent_volume_claim = 'jupyterhub-nfs'
+    c.KubernetesSpawner.container_volume_mount_path = "/mnt"
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment

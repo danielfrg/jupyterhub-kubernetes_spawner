@@ -41,23 +41,23 @@ class KubernetesSpawner(Spawner):
         )
     )
 
-    nfs_server = Unicode(
-        "",
-        config=True,
-        help=dedent(
-            """
-            """
-        )
-    )
+    # nfs_server = Unicode(
+    #     "",
+    #     config=True,
+    #     help=dedent(
+    #         """
+    #         """
+    #     )
+    # )
 
-    nfs_path = Unicode(
-        "/notebooks/{username}",
-        config=True,
-        help=dedent(
-            """
-            """
-        )
-    )
+    # nfs_path = Unicode(
+    #     "/exports/notebooks/{username}",
+    #     config=True,
+    #     help=dedent(
+    #         """
+    #         """
+    #     )
+    # )
 
     persistent_volume_claim_name = Unicode(
         "",
@@ -129,15 +129,19 @@ class KubernetesSpawner(Spawner):
             for env_name, env_value in self.get_env_vars().items():
                 container.add_env(env_name, env_value)
             # Mount volume to persist notebooks
-            if self.nfs_server and self.nfs_path:
-                vol_name = "notebooks"
-                nfs_path = self.nfs_path.format(username=self.user.name)
-                new_pod.add_nfs_volume(vol_name, self.nfs_server, nfs_path)
-                container.add_volume(vol_name, self.container_volume_mount_path)
-            # if self.persistent_volume_claim_name and self.container_volume_mount_path:
+            # if self.nfs_server and self.nfs_path:
             #     vol_name = "notebooks"
-            #     new_pod.add_pvc_volume(vol_name, self.persistent_volume_claim_name)
+            #     nfs_path = self.nfs_path.format(username=self.user.name)
+            #     # nfs_path = self.nfs_path
+            #     new_pod.add_nfs_volume(vol_name, self.nfs_server, nfs_path)
             #     container.add_volume(vol_name, self.container_volume_mount_path)
+            if self.persistent_volume_claim_name and self.container_volume_mount_path:
+                vol_name = "notebooks"
+                new_pod.add_pvc_volume(vol_name, self.persistent_volume_claim_name)
+                volume_path = self.container_volume_mount_path
+                if '{username}' in volume_path:
+                    volume_path = volume_path.format(username=self.user.name)
+                container.add_volume(vol_name, volume_path)
 
             new_pod.add_container(container)
 

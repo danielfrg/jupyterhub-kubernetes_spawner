@@ -1,1 +1,1 @@
-# JupyterHub on Kubernetes with LDAP
+# JupyterHub on Kubernetes with LDAP and NFS

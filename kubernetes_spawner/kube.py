@@ -83,22 +83,22 @@ class Pod(V1Pod):
     def add_container(self, container):
         self.spec.containers.append(container)
 
-    def add_nfs_volume(self, name, server, path):
-        volume = V1Volume()
-        volume.name = name
-        nfs_source = V1NFSVolumeSource()
-        nfs_source.server = server
-        nfs_source.path = path
-        volume.nfs = nfs_source
-        self.spec.volumes.append(volume)
-
-    # def add_pvc_volume(self, name, claim_name):
+    # def add_nfs_volume(self, name, server, path):
     #     volume = V1Volume()
     #     volume.name = name
-    #     pvc_source = V1PersistentVolumeClaimVolumeSource()
-    #     pvc_source.claim_name = claim_name
-    #     volume.persistent_volume_claim = pvc_source
+    #     nfs_source = V1NFSVolumeSource()
+    #     nfs_source.server = server
+    #     nfs_source.path = path
+    #     volume.nfs = nfs_source
     #     self.spec.volumes.append(volume)
+
+    def add_pvc_volume(self, name, claim_name):
+        volume = V1Volume()
+        volume.name = name
+        pvc_source = V1PersistentVolumeClaimVolumeSource()
+        pvc_source.claim_name = claim_name
+        volume.persistent_volume_claim = pvc_source
+        self.spec.volumes.append(volume)
 
 
 class Container(V1Container):
