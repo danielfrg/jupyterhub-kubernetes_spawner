@@ -20,7 +20,7 @@ data:
     # c.KubernetesSpawner.password = '{{ KUBE_PASS }}'
     c.KubernetesSpawner.verify_ssl = False
     c.KubernetesSpawner.hub_ip_from_service = 'jupyterhub'
-    c.KubernetesSpawner.container_image = "gcr.io/continuum-compute/jupyterhub-kube-ldap-single:0.1"
+    c.KubernetesSpawner.container_image = "danielfrg/jupyterhub-kube-ldap-singleuser:0.1"
     c.Spawner.notebook_dir = '/mnt/notebooks/%U'
     c.KubernetesSpawner.persistent_volume_claim_name = 'jupyterhub-nfs'
     c.KubernetesSpawner.persistent_volume_claim_path = "/mnt"
@@ -53,7 +53,7 @@ spec:
           - --error-target
           - http://127.0.0.1:8081/hub/error
       - name: jupyterhub
-        image: gcr.io/continuum-compute/jupyterhub-kube-ldap:0.1
+        image: danielfrg/jupyterhub-kube-ldap:0.1
         ports:
           - containerPort: 8081
         volumeMounts:
