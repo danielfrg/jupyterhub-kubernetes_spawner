@@ -9,7 +9,6 @@ from .swagger_client.models.v1_env_var import V1EnvVar
 from .swagger_client.models.v1_env_var_source import V1EnvVarSource
 from .swagger_client.models.v1_volume import V1Volume
 from .swagger_client.models.v1_volume_mount import V1VolumeMount
-from .swagger_client.models.v1_nfs_volume_source import V1NFSVolumeSource
 from .swagger_client.models.v1_persistent_volume_claim_volume_source import V1PersistentVolumeClaimVolumeSource
 from .swagger_client.models.v1_object_field_selector import V1ObjectFieldSelector
 from .swagger_client.models.v1_resource_requirements import V1ResourceRequirements
@@ -82,15 +81,6 @@ class Pod(V1Pod):
 
     def add_container(self, container):
         self.spec.containers.append(container)
-
-    # def add_nfs_volume(self, name, server, path):
-    #     volume = V1Volume()
-    #     volume.name = name
-    #     nfs_source = V1NFSVolumeSource()
-    #     nfs_source.server = server
-    #     nfs_source.path = path
-    #     volume.nfs = nfs_source
-    #     self.spec.volumes.append(volume)
 
     def add_pvc_volume(self, name, claim_name):
         volume = V1Volume()

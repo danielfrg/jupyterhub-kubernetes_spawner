@@ -157,6 +157,8 @@ class KubernetesSpawner(Spawner):
         ret['JPY_BASE_URL'] = self.user.server.base_url
         ret['JPY_HUB_PREFIX'] = self.hub.server.base_url
         ret['JPY_HUB_API_URL'] = self._hub_api_url()
+        if self.notebook_dir:
+            ret['NOTEBOOK_DIR'] = self.notebook_dir
         return ret
 
     def _hub_api_url(self):
