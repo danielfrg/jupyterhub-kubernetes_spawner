@@ -1,3 +1,30 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jupyterhub-config-py
+data:
+  jupyterhub-config.py: |-
+    c.JupyterHub.db_url = 'sqlite:////tmp/jupyterhub.sqlite'
+    c.JupyterHub.cookie_secret_file = '/tmp/jupyterhub_cookie_secret'
+
+    c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'
+    c.LDAPAuthenticator.bind_dn_template = 'cn={username},cn=jupyterhub,dc=example,dc=org'
+    # c.LDAPAuthenticator.server_address = '{{ LDAP_SERVICE_IP }}'
+    c.LDAPAuthenticator.server_address = '10.103.250.93'
+    c.LDAPAuthenticator.use_ssl = False
+
+    c.JupyterHub.spawner_class = 'kubernetes_spawner.KubernetesSpawner'
+    c.KubernetesSpawner.host = 'https://104.198.254.64'
+    c.KubernetesSpawner.username = 'admin'
+    c.KubernetesSpawner.password = 'b7aEMDJZBdoIZNGv'
+    # c.KubernetesSpawner.host = '{{ KUBE_HOST }}'
+    # c.KubernetesSpawner.username = '{{ KUBE_USER }}'
+    # c.KubernetesSpawner.password = '{{ KUBE_PASS }}'
+    c.KubernetesSpawner.verify_ssl = False
+    c.KubernetesSpawner.hub_ip_from_service = 'jupyterhub'
+    c.KubernetesSpawner.persistent_volume_claim = 'jupyterhub-nfs'
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -26,9 +53,19 @@ spec:
           - --error-target
           - http://127.0.0.1:8081/hub/error
       - name: jupyterhub
-        image: gcr.io/continuum-compute/jupyterhub-kube:0.2
+        image: gcr.io/continuum-compute/jupyterhub-kube-ldap:0.1
         ports:
           - containerPort: 8081
+        volumeMounts:
+          - name: config-volume
+            mountPath: "/srv/jupyterhub/"
+      volumes:
+        - name: config-volume
+          configMap:
+            name: jupyterhub-config-py
+            items:
+              - key: jupyterhub-config.py
+                path: jupyterhub_config.py
 ---
 apiVersion: v1
 kind: Service

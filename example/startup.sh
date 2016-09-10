@@ -7,9 +7,9 @@ while true; do
     if [ ${response} != "000" ]; then
         break;
     else
-        sleep 2
+        sleep 2;
     fi
 done
 
-# pip install git+git://github.com/danielfrg/jupyterhub-kubernetes_spawner.git
+pip install git+git://github.com/danielfrg/jupyterhub-kubernetes_spawner.git
 jupyterhub --ip 0.0.0.0 --no-ssl --log-level DEBUG

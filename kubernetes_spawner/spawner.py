@@ -4,7 +4,7 @@ from textwrap import dedent
 from tornado import gen
 from escapism import escape
 from jupyterhub.spawner import Spawner
-from traitlets import Dict, Unicode, Bool, Int, List
+from traitlets import Unicode, Bool, Int
 
 from .kube import KubernetesClient, Pod, BaseContainer
 
@@ -21,26 +21,51 @@ class KubernetesSpawner(Spawner):
         config=True,
         help=dedent(
             """
-            Prefix for container names. The full container name for a particular
-            user will be <prefix>-<username>.
+            Prefix for container names.
+            The full container name for a particular user will be: <prefix>-<username>
             """
         )
     )
 
     container_image = Unicode("jupyterhub/singleuser", config=True)
+    container_port = Int(8888, config=True)
     _container_safe_chars = set(string.ascii_letters + string.digits + '-')
     _container_escape_char = '_'
+    container_volume_mount_path = Unicode(
+        "/home/jovyan/work",
+        config=True,
+        help=dedent(
+            """
+            This depends on what `container_image` is used.
+            """
+        )
+    )
 
-    hub_ip_from_service = Unicode(
+    nfs_server = Unicode(
         "",
         config=True,
         help=dedent(
             """
-            Kubernetes service name to get proxy IP.
-            This is useful when running in Kubernetes to make all the pod containers use
-            the public facing (load balanced) proxy API IP.
+            """
+        )
+    )
 
-            Higher priority than hub_ip_from_pod
+    nfs_path = Unicode(
+        "/notebooks/{username}",
+        config=True,
+        help=dedent(
+            """
+            """
+        )
+    )
+
+    persistent_volume_claim_name = Unicode(
+        "",
+        config=True,
+        help=dedent(
+            """
+            The name of the Kubernetes Persistent Volume Claim object
+            that will be used to persit the notebooks of all the users
             """
         )
     )
@@ -53,6 +78,20 @@ class KubernetesSpawner(Spawner):
             Kubernetes Pod to get the Proxy IP.
             This is useful when running in Kubernetes to make all the pod containers use
             the IP of a pod running in the same clustert
+            """
+        )
+    )
+
+    hub_ip_from_service = Unicode(
+        "",
+        config=True,
+        help=dedent(
+            """
+            Kubernetes service name to get proxy IP.
+            This is useful when running in Kubernetes to make all the pod containers use
+            the public facing (load balanced) proxy API IP.
+
+            Higher priority than hub_ip_from_pod
             """
         )
     )
@@ -76,18 +115,30 @@ class KubernetesSpawner(Spawner):
     @gen.coroutine
     def start(self):
         # TODO: handle stoped
-        container_port = 8888
-
         self.log.debug("Starting pod '%s'", self.pod_name)
         pod = self.get_pod()
+
         if pod is None:
             self.log.debug("Pod '%s' NOT found. Creating it...", self.pod_name)
 
             new_pod = Pod(name=self.pod_name)
+
+            # Create Jupyter container
             container = BaseContainer(name='jupyter', image=self.container_image)
-            container.add_port(container_port)
+            container.add_port(self.container_port)
             for env_name, env_value in self.get_env_vars().items():
                 container.add_env(env_name, env_value)
+            # Mount volume to persist notebooks
+            if self.nfs_server and self.nfs_path:
+                vol_name = "notebooks"
+                nfs_path = self.nfs_path.format(username=self.user.name)
+                new_pod.add_nfs_volume(vol_name, self.nfs_server, nfs_path)
+                container.add_volume(vol_name, self.container_volume_mount_path)
+            # if self.persistent_volume_claim_name and self.container_volume_mount_path:
+            #     vol_name = "notebooks"
+            #     new_pod.add_pvc_volume(vol_name, self.persistent_volume_claim_name)
+            #     container.add_volume(vol_name, self.container_volume_mount_path)
+
             new_pod.add_container(container)
 
             self.client.launch_pod(new_pod)
@@ -96,12 +147,11 @@ class KubernetesSpawner(Spawner):
             self.log.debug("Pod '%s' FOUND", self.pod_name)
 
         ip = pod.status.pod_ip
-        container_port = 8888
-        self.log.debug("Pod ready at '%s:%s'", ip, container_port)
+        self.log.debug("Pod ready at '%s:%s'", ip, self.container_port)
 
         self.user.server.ip = ip
-        self.user.server.port = container_port
-        return ip, container_port
+        self.user.server.port = self.container_port
+        return ip, self.container_port
 
     def get_pod(self):
         return self.client.get_pod(self.pod_name)

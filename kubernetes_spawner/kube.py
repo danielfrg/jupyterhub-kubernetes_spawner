@@ -7,6 +7,10 @@ from .swagger_client.models.v1_container import V1Container
 from .swagger_client.models.v1_container_port import V1ContainerPort
 from .swagger_client.models.v1_env_var import V1EnvVar
 from .swagger_client.models.v1_env_var_source import V1EnvVarSource
+from .swagger_client.models.v1_volume import V1Volume
+from .swagger_client.models.v1_volume_mount import V1VolumeMount
+from .swagger_client.models.v1_nfs_volume_source import V1NFSVolumeSource
+from .swagger_client.models.v1_persistent_volume_claim_volume_source import V1PersistentVolumeClaimVolumeSource
 from .swagger_client.models.v1_object_field_selector import V1ObjectFieldSelector
 from .swagger_client.models.v1_resource_requirements import V1ResourceRequirements
 
@@ -58,6 +62,7 @@ class Pod(V1Pod):
         self.metadata.labels = {}
         self.spec = V1PodSpec()
         self.spec.containers = []
+        self.spec.volumes = []
 
         self._name = None
         self.name = name
@@ -78,6 +83,23 @@ class Pod(V1Pod):
     def add_container(self, container):
         self.spec.containers.append(container)
 
+    def add_nfs_volume(self, name, server, path):
+        volume = V1Volume()
+        volume.name = name
+        nfs_source = V1NFSVolumeSource()
+        nfs_source.server = server
+        nfs_source.path = path
+        volume.nfs = nfs_source
+        self.spec.volumes.append(volume)
+
+    # def add_pvc_volume(self, name, claim_name):
+    #     volume = V1Volume()
+    #     volume.name = name
+    #     pvc_source = V1PersistentVolumeClaimVolumeSource()
+    #     pvc_source.claim_name = claim_name
+    #     volume.persistent_volume_claim = pvc_source
+    #     self.spec.volumes.append(volume)
+
 
 class Container(V1Container):
 
@@ -86,6 +108,7 @@ class Container(V1Container):
         self.name = "{name}"
         self.ports = []
         self.env = []
+        self.volume_mounts = []
         self.add_pod_ip_env()
         self.add_default_resources()
 
@@ -114,6 +137,12 @@ class Container(V1Container):
         self.resources = V1ResourceRequirements()
         self.resources.requests = {"cpu": 0.25, "memory": "1Gi"}
         self.resources.limits = {"cpu": 0.25, "memory": "1Gi"}
+
+    def add_volume(self, name, path):
+        volume_mount = V1VolumeMount()
+        volume_mount.name = name
+        volume_mount.mount_path = path
+        self.volume_mounts.append(volume_mount)
 
 
 class BaseContainer(Container):

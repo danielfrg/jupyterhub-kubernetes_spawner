@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jupyterhub-nfs
+  labels:
+    volume: jupyterhub-nfs
+spec:
+  capacity:
+    storage: 1Mi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    # FIXME: use the right IP from service
+    # server: {{ X.X.X.X }}
+    server: 10.103.253.185
+    path: "/exports"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: jupyterhub-nfs
+spec:
+  selector:
+    matchLabels:
+      volume: jupyterhub-nfs
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Mi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jupyterhub-nfs-web-config
+data:
+  default.conf: |-
+    server {
+        listen   80;
+            server_name  localhost;
+            root /usr/share/nginx/html;
+            location / {
+                index none;
+                autoindex on;
+                autoindex_exact_size off;
+                autoindex_localtime on;
+        }
+    }
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jupyterhub-nfs-web
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: jupyterhub-nfs-web
+    spec:
+      containers:
+      - name: web
+        image: nginx
+        ports:
+          - containerPort: 80
+        volumeMounts:
+          - name: nfs
+            mountPath: "/usr/share/nginx/html"
+          - name: config-volume
+            mountPath: "/etc/nginx/conf.d/"
+      volumes:
+        - name: nfs
+          persistentVolumeClaim:
+            claimName: jupyterhub-nfs
+        - name: config-volume
+          configMap:
+            name: jupyterhub-nfs-web-config
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: jupyterhub-nfs-web
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: jupyterhub-nfs-web
