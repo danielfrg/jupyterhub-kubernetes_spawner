@@ -25,8 +25,8 @@ data:
     # c.KubernetesSpawner.password = '{{ KUBE_PASS }}'
     c.KubernetesSpawner.verify_ssl = False
     c.KubernetesSpawner.hub_ip_from_service = 'jupyterhub'
-    c.KubernetesSpawner.persistent_volume_claim = 'jupyterhub-nfs'
-    c.KubernetesSpawner.container_volume_mount_path = "/mnt"
+    c.KubernetesSpawner.persistent_volume_claim_name = 'jupyterhub-nfs'
+    c.KubernetesSpawner.persistent_volume_claim_path = "/mnt"
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment

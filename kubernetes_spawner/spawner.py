@@ -31,33 +31,6 @@ class KubernetesSpawner(Spawner):
     container_port = Int(8888, config=True)
     _container_safe_chars = set(string.ascii_letters + string.digits + '-')
     _container_escape_char = '_'
-    container_volume_mount_path = Unicode(
-        "/home/jovyan/work",
-        config=True,
-        help=dedent(
-            """
-            This depends on what `container_image` is used.
-            """
-        )
-    )
-
-    # nfs_server = Unicode(
-    #     "",
-    #     config=True,
-    #     help=dedent(
-    #         """
-    #         """
-    #     )
-    # )
-
-    # nfs_path = Unicode(
-    #     "/exports/notebooks/{username}",
-    #     config=True,
-    #     help=dedent(
-    #         """
-    #         """
-    #     )
-    # )
 
     persistent_volume_claim_name = Unicode(
         "",
@@ -66,6 +39,16 @@ class KubernetesSpawner(Spawner):
             """
             The name of the Kubernetes Persistent Volume Claim object
             that will be used to persit the notebooks of all the users
+            """
+        )
+    )
+
+    persistent_volume_claim_path = Unicode(
+        "/mnt",
+        config=True,
+        help=dedent(
+            """
+            Where to mount the persistent volume claim in the container
             """
         )
     )
@@ -129,16 +112,10 @@ class KubernetesSpawner(Spawner):
             for env_name, env_value in self.get_env_vars().items():
                 container.add_env(env_name, env_value)
             # Mount volume to persist notebooks
-            # if self.nfs_server and self.nfs_path:
-            #     vol_name = "notebooks"
-            #     nfs_path = self.nfs_path.format(username=self.user.name)
-            #     # nfs_path = self.nfs_path
-            #     new_pod.add_nfs_volume(vol_name, self.nfs_server, nfs_path)
-            #     container.add_volume(vol_name, self.container_volume_mount_path)
-            if self.persistent_volume_claim_name and self.container_volume_mount_path:
+            if self.persistent_volume_claim_name and self.persistent_volume_claim_path:
                 vol_name = "notebooks"
                 new_pod.add_pvc_volume(vol_name, self.persistent_volume_claim_name)
-                volume_path = self.container_volume_mount_path
+                volume_path = self.persistent_volume_claim_path
                 if '{username}' in volume_path:
                     volume_path = volume_path.format(username=self.user.name)
                 container.add_volume(vol_name, volume_path)
