@@ -8,7 +8,6 @@ data:
     c.JupyterHub.confirm_no_ssl = True
     c.JupyterHub.db_url = 'sqlite:////tmp/jupyterhub.sqlite'
     c.JupyterHub.cookie_secret_file = '/tmp/jupyterhub_cookie_secret'
-    c.Spawner.notebook_dir = '/mnt/notebooks/%U'
 
     c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'
     c.LDAPAuthenticator.bind_dn_template = 'cn={username},cn=jupyterhub,dc=example,dc=org'
@@ -25,8 +24,11 @@ data:
     # c.KubernetesSpawner.password = '{{ KUBE_PASS }}'
     c.KubernetesSpawner.verify_ssl = False
     c.KubernetesSpawner.hub_ip_from_service = 'jupyterhub'
+    c.KubernetesSpawner.container_image = "gcr.io/continuum-compute/jupyterhub-kube-ldap-single:0.1"
+    c.Spawner.notebook_dir = '/mnt/notebooks/%U'
     c.KubernetesSpawner.persistent_volume_claim_name = 'jupyterhub-nfs'
     c.KubernetesSpawner.persistent_volume_claim_path = "/mnt"
+    c.KubernetesSpawner.container_command = "mkdir -p /mnt/notebooks/{username} && sh /srv/singleuser/singleuser.sh"
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment

@@ -134,6 +134,11 @@ class Container(V1Container):
         volume_mount.mount_path = path
         self.volume_mounts.append(volume_mount)
 
+    def set_command(self, command):
+        if isinstance(command, str):
+            self.command = command.split(" ")
+        if isinstance(command, list):
+            self.command = command
 
 class BaseContainer(Container):
 
