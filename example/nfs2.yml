@@ -11,8 +11,7 @@ spec:
     - ReadWriteMany
   nfs:
     # FIXME: use the right IP from service
-    # server: {{ X.X.X.X }}
-    server: 10.103.253.185
+    server: {{ X.X.X.X }}
     path: "/exports"
 ---
 kind: PersistentVolumeClaim
