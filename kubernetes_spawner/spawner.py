@@ -1,4 +1,3 @@
-import os
 import string
 from textwrap import dedent
 
@@ -12,7 +11,7 @@ from .kube import KubernetesClient, Pod, BaseContainer
 
 class KubernetesSpawner(Spawner):
 
-    host = Unicode("", config=True, help="Kubernetes HTTP/REST API host")
+    host = Unicode("kubernetes", config=True, help="Kubernetes HTTP/REST API host")
     username = Unicode("", config=True, help="Kubernetes HTTP/REST API username")
     password = Unicode("", config=True, help="Kubernetes HTTP/REST API password")
     verify_ssl = Bool(True, config=True, help="Kubernetes HTTP/REST API use ssl")
@@ -92,12 +91,11 @@ class KubernetesSpawner(Spawner):
                 import urllib3
                 urllib3.disable_warnings()
 
-            host = self.host or os.environ.get("KUBERNETES_SERVICE_HOST")
             if self.username and self.password:
-                cls._client = KubernetesClient.from_username_password(host, self.username, self.password,
+                cls._client = KubernetesClient.from_username_password(self.host, self.username, self.password,
                                                                       verify_ssl=self.verify_ssl)
             else:
-                self._client = KubernetesClient.from_service_account(host)
+                self._client = KubernetesClient.from_service_account(self.host)
         return cls._client
 
     @gen.coroutine
