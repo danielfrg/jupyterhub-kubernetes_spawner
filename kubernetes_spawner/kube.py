@@ -37,10 +37,6 @@ class KubernetesClient(object):
     @classmethod
     def from_service_account(cls, host, *args, **kwargs):
         fpath = "/var/run/secrets/kubernetes.io/serviceaccount/token"
-        return cls.from_token_file(host, fpath, *args, **kwargs)
-
-    @classmethod
-    def from_token_file(cls, host, fpath, *args, **kwargs):
         if not os.path.exists(fpath):
             raise Exception("Token file '{}' not found".format(fpath))
         with open(fpath, "r") as f:
