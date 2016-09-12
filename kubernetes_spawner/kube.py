@@ -18,8 +18,10 @@ from .swagger_client.models.v1_resource_requirements import V1ResourceRequiremen
 
 class KubernetesClient(object):
 
-    def __init__(self, host, token, verify_ssl=True):
+    def __init__(self, host, token, verify_ssl=True, ssl_ca_cert=None):
         swagger.Configuration().verify_ssl = verify_ssl
+        # swagger.Configuration().ssl_ca_cert = ssl_ca_cert
+
         self.client = swagger.ApiClient(host)
         self.client.default_headers["Authorization"] = token
         self.client.default_headers["Content-Type"] = "application/json"
@@ -40,7 +42,7 @@ class KubernetesClient(object):
         if not os.path.exists(fpath):
             raise Exception("Token file '{}' not found".format(fpath))
         with open(fpath, "r") as f:
-            token = f.read()
+            token = "Bearer {}".format(f.read().strip())
         return cls(host, token, *args, **kwargs)
 
     def launch_pod(self, pod, namespace=None):
