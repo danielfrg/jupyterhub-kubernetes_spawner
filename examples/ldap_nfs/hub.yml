@@ -11,11 +11,10 @@ data:
 
     c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'
     c.LDAPAuthenticator.bind_dn_template = 'cn={username},cn=jupyterhub,dc=example,dc=org'
-    c.LDAPAuthenticator.server_address = '{{ LDAP_SERVICE_IP }}'
+    c.LDAPAuthenticator.server_address = '10.103.244.202'
     c.LDAPAuthenticator.use_ssl = False
 
     c.JupyterHub.spawner_class = 'kubernetes_spawner.KubernetesSpawner'
-    c.KubernetesSpawner.host = '{{ KUBE_HOST }}'
     c.KubernetesSpawner.verify_ssl = False
     c.KubernetesSpawner.hub_ip_from_service = 'jupyterhub'
     # c.KubernetesSpawner.container_image = 'danielfrg/jupyterhub-kube-ldap-nfs-singleuser:0.2'
