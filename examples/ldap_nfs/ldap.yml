@@ -28,18 +28,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: jupyterhub-ldap-admin
-spec:
-  type: LoadBalancer
-  ports:
-  - port: 80
-    targetPort: 80
-  selector:
-    app: jupyterhub-ldap
----
-apiVersion: v1
-kind: Service
-metadata:
   name: jupyterhub-ldap
 spec:
   ports:
@@ -49,5 +37,17 @@ spec:
   - name: ldap-ssl
     port: 636
     targetPort: 636
+  selector:
+    app: jupyterhub-ldap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jupyterhub-ldap-admin
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 80
   selector:
     app: jupyterhub-ldap

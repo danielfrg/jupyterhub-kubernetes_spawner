@@ -1,4 +1,6 @@
 
+import os
+
 from . import swagger_client as swagger
 from .swagger_client.models.v1_pod import V1Pod
 from .swagger_client.models.v1_pod_spec import V1PodSpec
@@ -16,19 +18,34 @@ from .swagger_client.models.v1_resource_requirements import V1ResourceRequiremen
 
 class KubernetesClient(object):
 
-    def __init__(self, host, username=None, password=None, verify_ssl=True):
+    def __init__(self, host, token, verify_ssl=True):
         swagger.Configuration().verify_ssl = verify_ssl
         self.client = swagger.ApiClient(host)
-
-        if username and password:
-            swagger.Configuration().username = username
-            swagger.Configuration().password = password
-            auth_token = swagger.Configuration().get_basic_auth_token()
-            self.client.default_headers["Authorization"] = auth_token
-            self.client.default_headers["Content-Type"] = "application/json"
+        self.client.default_headers["Authorization"] = token
+        self.client.default_headers["Content-Type"] = "application/json"
 
         self.api = swagger.ApivApi(self.client)
         self.default_namespace = "default"
+
+    @classmethod
+    def from_username_password(cls, host, username, password, *args, **kwargs):
+        swagger.Configuration().username = username
+        swagger.Configuration().password = password
+        token = swagger.Configuration().get_basic_auth_token()
+        return cls(host, token, *args, **kwargs)
+
+    @classmethod
+    def from_service_account(cls, host, *args, **kwargs):
+        fpath "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        return cls.from_token_file(host, fpath, *args, **kwargs)
+
+    @classmethod
+    def from_token_file(cls, host, fpath, *args, **kwargs):
+        if not os.path.exists(fpath):
+            raise Exception("Token file '{}' not found".format(fpath))
+        with open(fpath, "r") as f:
+            token = f.read()
+        return cls(host, token, *args, **kwargs)
 
     def launch_pod(self, pod, namespace=None):
         namespace = namespace or self.default_namespace

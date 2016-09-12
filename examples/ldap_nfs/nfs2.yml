@@ -17,7 +17,7 @@ spec:
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: jupyterhub-nfs
+  name: jupyterhub-volume
 spec:
   selector:
     matchLabels:
@@ -70,7 +70,7 @@ spec:
       volumes:
         - name: nfs
           persistentVolumeClaim:
-            claimName: jupyterhub-nfs
+            claimName: jupyterhub-volume
         - name: config-volume
           configMap:
             name: jupyterhub-nfs-web-config

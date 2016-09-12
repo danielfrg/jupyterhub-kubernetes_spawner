@@ -91,8 +91,11 @@ class KubernetesSpawner(Spawner):
                 import urllib3
                 urllib3.disable_warnings()
 
-            cls._client = KubernetesClient(self.host, self.username, self.password,
-                                            verify_ssl=self.verify_ssl)
+            if self.username and self.password:
+                cls._client = KubernetesClient.from_username_password(self.host, self.username, self.password,
+                                                                      verify_ssl=self.verify_ssl)
+            else:
+                self._client = KubernetesClient.from_service_account(self.host)
         return cls._client
 
     @gen.coroutine

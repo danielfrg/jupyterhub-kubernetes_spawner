@@ -8,7 +8,7 @@ spec:
   accessModes: ["ReadWriteOnce"]
   resources:
     requests:
-      storage: 200Gi
+      storage: 500Gi
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
