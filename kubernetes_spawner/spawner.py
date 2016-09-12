@@ -97,7 +97,7 @@ class KubernetesSpawner(Spawner):
                                                                       verify_ssl=self.verify_ssl)
             else:
                 self.log.debug("Creating Kubernetes client from Service Account")
-                self._client = KubernetesClient.from_service_account(self.host, verify_ssl=self.verify_ssl)
+                cls._client = KubernetesClient.from_service_account(self.host, verify_ssl=self.verify_ssl)
         return cls._client
 
     @gen.coroutine
