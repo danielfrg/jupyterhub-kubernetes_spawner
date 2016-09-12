@@ -11,5 +11,4 @@ while true; do
     fi
 done
 
-pip install git+git://github.com/danielfrg/jupyterhub-kubernetes_spawner.git
 jupyterhub --ip 0.0.0.0 --log-level DEBUG
