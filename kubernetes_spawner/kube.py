@@ -36,7 +36,7 @@ class KubernetesClient(object):
 
     @classmethod
     def from_service_account(cls, host, *args, **kwargs):
-        fpath "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        fpath = "/var/run/secrets/kubernetes.io/serviceaccount/token"
         return cls.from_token_file(host, fpath, *args, **kwargs)
 
     @classmethod
