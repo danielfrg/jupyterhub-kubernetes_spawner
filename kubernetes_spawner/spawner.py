@@ -11,7 +11,7 @@ from .kube import KubernetesClient, Pod, BaseContainer
 
 class KubernetesSpawner(Spawner):
 
-    host = Unicode("kubernetes", config=True, help="Kubernetes HTTP/REST API host")
+    host = Unicode("https://kubernetes", config=True, help="Kubernetes HTTP/REST API host")
     username = Unicode("", config=True, help="Kubernetes HTTP/REST API username")
     password = Unicode("", config=True, help="Kubernetes HTTP/REST API password")
     verify_ssl = Bool(True, config=True, help="Kubernetes HTTP/REST API use ssl")
