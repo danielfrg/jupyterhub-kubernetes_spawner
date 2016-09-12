@@ -92,9 +92,11 @@ class KubernetesSpawner(Spawner):
                 urllib3.disable_warnings()
 
             if self.username and self.password:
+                self.log.debug("Creating Kubernetes client from username and password")
                 cls._client = KubernetesClient.from_username_password(self.host, self.username, self.password,
                                                                       verify_ssl=self.verify_ssl)
             else:
+                self.log.debug("Creating Kubernetes client from Service Account")
                 self._client = KubernetesClient.from_service_account(self.host)
         return cls._client
 

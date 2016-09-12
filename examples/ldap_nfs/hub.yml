@@ -11,7 +11,7 @@ data:
 
     c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'
     c.LDAPAuthenticator.bind_dn_template = 'cn={username},cn=jupyterhub,dc=example,dc=org'
-    c.LDAPAuthenticator.server_address = '10.103.244.202'
+    c.LDAPAuthenticator.server_address = '{{ LDAP_SERVICE }}'
     c.LDAPAuthenticator.use_ssl = False
 
     c.JupyterHub.spawner_class = 'kubernetes_spawner.KubernetesSpawner'
