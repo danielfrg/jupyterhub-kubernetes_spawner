@@ -53,20 +53,8 @@ class KubernetesSpawner(Spawner):
         )
     )
 
-    hub_ip_from_pod = Unicode(
-        "",
-        config=True,
-        help=dedent(
-            """
-            Kubernetes Pod to get the Proxy IP.
-            This is useful when running in Kubernetes to make all the pod containers use
-            the IP of a pod running in the same clustert
-            """
-        )
-    )
-
     hub_ip_from_service = Unicode(
-        "",
+        "jupyterhub",
         config=True,
         help=dedent(
             """
