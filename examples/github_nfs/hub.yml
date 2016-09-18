@@ -1,0 +1,117 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jupyterhub-config-py
+data:
+  jupyterhub-config.py: |-
+    c.JupyterHub.confirm_no_ssl = True
+    c.JupyterHub.db_url = 'sqlite:////tmp/jupyterhub.sqlite'
+    c.JupyterHub.cookie_secret_file = '/tmp/jupyterhub_cookie_secret'
+
+    c.JupyterHub.authenticator_class = 'oauthenticator.GitHubOAuthenticator'
+    c.GitHubOAuthenticator.client_id = os.environ['GITHUB_CLIENT_ID']
+    c.GitHubOAuthenticator.client_secret = os.environ['GITHUB_CLIENT_SECRET']
+    c.GitHubOAuthenticator.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
+
+    c.JupyterHub.spawner_class = 'kubernetes_spawner.KubernetesSpawner'
+    c.KubernetesSpawner.verify_ssl = False
+    c.KubernetesSpawner.hub_ip_from_service = 'jupyterhub'
+    c.KubernetesSpawner.container_image = 'danielfrg/jupyterhub-kube-ldap-nfs-singleuser:0.1'
+    c.Spawner.notebook_dir = '/mnt/notebooks/%U'
+    c.KubernetesSpawner.persistent_volume_claim_name = 'jupyterhub-volume'
+    c.KubernetesSpawner.persistent_volume_claim_path = '/mnt'
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jupyterhub
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: jupyterhub
+    spec:
+      containers:
+      - name: proxy
+        image: jupyterhub/configurable-http-proxy
+        env:
+          - name: CONFIGPROXY_AUTH_TOKEN
+            valueFrom:
+              secretKeyRef:
+                key: configproxy-auth-token
+                name: jupyterhub-secrets
+        ports:
+          - containerPort: 8000
+          - containerPort: 8001
+        command:
+          - configurable-http-proxy
+          - --ip
+          - 0.0.0.0
+          - --api-ip
+          - 0.0.0.0
+          - --default-target
+          - http://127.0.0.1:8081
+          - --error-target
+          - http://127.0.0.1:8081/hub/error
+      - name: jupyterhub
+        image: danielfrg/jupyterhub-kube-github-nfs:0.1
+        env:
+          - name: CONFIGPROXY_AUTH_TOKEN
+            valueFrom:
+              secretKeyRef:
+                key: configproxy-auth-token
+                name: jupyterhub-secrets
+          - name: GITHUB_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                key: github-client-id
+                name: jupyterhub-secrets
+          - name: GITHUB_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                key: github-client-secret
+                name: jupyterhub-secrets
+          - name: OAUTH_CALLBACK_URL
+            value: {{ OAUTH_CALLBACK_URL }}
+        ports:
+          - containerPort: 8081
+        volumeMounts:
+          - name: config-volume
+            mountPath: "/srv/jupyterhub/"
+      volumes:
+        - name: config-volume
+          configMap:
+            name: jupyterhub-config-py
+            items:
+              - key: jupyterhub-config.py
+                path: jupyterhub_config.py
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jupyterhub
+  labels:
+    app: jupyterhub
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8000
+  selector:
+    app: jupyterhub
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jupyterhub-api
+  labels:
+    app: jupyterhub-api
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8001
+  selector:
+    app: jupyterhub
