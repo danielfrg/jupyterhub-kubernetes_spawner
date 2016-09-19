@@ -5,6 +5,7 @@ metadata:
   name: jupyterhub-config-py
 data:
   jupyterhub-config.py: |-
+    import os
     c.JupyterHub.confirm_no_ssl = True
     c.JupyterHub.db_url = 'sqlite:////tmp/jupyterhub.sqlite'
     c.JupyterHub.cookie_secret_file = '/tmp/jupyterhub_cookie_secret'
@@ -18,6 +19,7 @@ data:
     c.KubernetesSpawner.verify_ssl = False
     c.KubernetesSpawner.hub_ip_from_service = 'jupyterhub'
     c.KubernetesSpawner.container_image = 'danielfrg/jupyterhub-kube-ldap-nfs-singleuser:0.1'
+    c.Spawner.default_url = '/lab'
     c.Spawner.notebook_dir = '/mnt/notebooks/%U'
     c.KubernetesSpawner.persistent_volume_claim_name = 'jupyterhub-volume'
     c.KubernetesSpawner.persistent_volume_claim_path = '/mnt'
@@ -97,21 +99,11 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-  - port: 80
+  - name: proxy-lookup
+    port: 80
     targetPort: 8000
-  selector:
-    app: jupyterhub
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: jupyterhub-api
-  labels:
-    app: jupyterhub-api
-spec:
-  type: LoadBalancer
-  ports:
-  - port: 80
+  - name: proxy-api
+    port: 8001
     targetPort: 8001
   selector:
     app: jupyterhub
