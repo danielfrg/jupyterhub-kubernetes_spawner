@@ -53,6 +53,18 @@ class KubernetesSpawner(Spawner):
         )
     )
 
+    hub_ip = Unicode(
+        "",
+        config=True,
+        help=dedent(
+            """
+            The Jupyter Hub (Proxy) main IP address.
+
+            This disables hub_ip_from_service
+            """
+        )
+    )
+
     hub_ip_from_service = Unicode(
         "jupyterhub",
         config=True,
@@ -61,8 +73,6 @@ class KubernetesSpawner(Spawner):
             Kubernetes service name to get proxy IP.
             This is useful when running in Kubernetes to make all the pod containers use
             the public facing (load balanced) proxy API IP.
-
-            Higher priority than hub_ip_from_pod
             """
         )
     )
@@ -157,12 +167,11 @@ class KubernetesSpawner(Spawner):
         return ret
 
     def _hub_api_url(self):
+        if self.hub_ip:
+            ip = self.hub_ip
         if self.hub_ip_from_service:
             api_service = self.client.get_service(self.hub_ip_from_service)
             ip = api_service.status.load_balancer.ingress[0].ip
-        elif self.hub_ip_from_pod:
-            api_pod = self.client.get_pod(self.hub_ip_from_pod)
-            ip = api_pod.status.pod_ip
         else:
             return self.hub.api_url
 
