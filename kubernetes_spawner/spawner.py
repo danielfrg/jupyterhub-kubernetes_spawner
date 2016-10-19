@@ -182,7 +182,7 @@ class KubernetesSpawner(Spawner):
         if self.hub_ip:
             ip = self.hub_ip
             port = self.hub_port
-        if self.hub_ip_from_service:
+        elif self.hub_ip_from_service:
             api_service = self.client.get_service(self.hub_ip_from_service)
             ip = api_service.status.load_balancer.ingress[0].ip
             port = None
