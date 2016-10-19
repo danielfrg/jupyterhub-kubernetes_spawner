@@ -65,6 +65,18 @@ class KubernetesSpawner(Spawner):
         )
     )
 
+    hub_port = Unicode(
+        "8081",
+        config=True,
+        help=dedent(
+            """
+            The Jupyter Hub (Proxy) main port.
+
+            This should be used with `self.hub_ip`.
+            """
+        )
+    )
+
     hub_ip_from_service = Unicode(
         "jupyterhub",
         config=True,
@@ -169,16 +181,19 @@ class KubernetesSpawner(Spawner):
     def _hub_api_url(self):
         if self.hub_ip:
             ip = self.hub_ip
+            port = self.hub_port
         if self.hub_ip_from_service:
             api_service = self.client.get_service(self.hub_ip_from_service)
             ip = api_service.status.load_balancer.ingress[0].ip
+            port = None
         else:
             return self.hub.api_url
 
         proto, path = self.hub.api_url.split('://', 1)
         _ip, rest = path.split(':', 1)
-        port, rest = rest.split('/', 1)
-        return '{proto}://{ip}/{rest}'.format(proto=proto, ip=ip, rest=rest)
+        _port, path = rest.split('/', 1)
+        port_str = ":{port}".format(port=port) if port else ""
+        return '{proto}://{ip}{port_str}/{path}'.format(proto=proto, ip=ip, port_str=port_str, path=path)
 
     @gen.coroutine
     def wait_for_new_pod(self):
