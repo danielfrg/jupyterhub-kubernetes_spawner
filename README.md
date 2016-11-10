@@ -9,7 +9,7 @@ python setup.py install
 
 OR
 
-pip install git+git://github.com/danielfrg/jupyterhub-kubernetes_spawner.git
+pip install git+git://github.com/bjolivot/jupyterhub-kubernetes_spawner.git
 ```
 
 ## Usage
@@ -54,15 +54,28 @@ Image to use as for the single user container notebooks.
 
 Notebook port exposed by the single user container image
 
-####  `KubernetesSpawner.persistent_volume_claim_name` and `KubernetesSpawner.persistent_volume_claim_path`
+### Volume management
 
-If you want notebook files to be persisted set these values to a
-Kubernetes Persistent Volume Claim and a mount path on the
-container.
+If you want notebook files to be persisted you will need to mount volume in the spawned pod.
+You can use one of these mode : nfs, glusterfs, persistent volume claim
+ 
+ 
+Based on KubernetesSpawner.volume_mode, you will need to define different variables (look at k8s doc for help) :
+ 
+####  `KubernetesSpawner.volume_mode == "nfs"`
+ 
+ `KubernetesSpawner.nfs_server_ip`
+ `KubernetesSpawner.nfs_server_share`
+ 
+ 
+#### `KubernetesSpawner.volume_mode == "glusterfs"`
+ `KubernetesSpawner.glusterfs_endpoint`
+ `KubernetesSpawner.glusterfs_path`
+ 
+#### `KubernetesSpawner.volume_mode == "persistent_volume_claim"`
+`KubernetesSpawner.persistent_volume_claim_name` `KubernetesSpawner.persistent_volume_claim_path`
 
-This will probably require to change `c.Spawner.notebook_dir`
-to a path inside `KubernetesSpawner.persistent_volume_claim_path`.
-See example.
+See example
 
 #### `KubernetesSpawner.hub_ip_from_service`
 `default=jupyterhub`
@@ -95,6 +108,7 @@ c.KubernetesSpawner.verify_ssl = False
 c.KubernetesSpawner.hub_ip_from_service = 'jupyterhub'
 c.KubernetesSpawner.container_image = 'danielfrg/jupyterhub-kube-ldap-nfs-singleuser:0.1'
 c.Spawner.notebook_dir = '/mnt/notebooks/%U'
-c.KubernetesSpawner.persistent_volume_claim_name = 'jupyterhub-volume'
-c.KubernetesSpawner.persistent_volume_claim_path = '/mnt'
+c.KubernetesSpawner.volume_mode = "glusterfs"
+c.KubernetesSpawner.glusterfs_endpoint = "glusterfs-cluster"
+c.KubernetesSpawner.glusterfs_path = "jupyter-gluster"
 ```

@@ -53,6 +53,74 @@ class KubernetesSpawner(Spawner):
         )
     )
 
+
+    nfs_server_share = Unicode(
+        "",
+        config=True,
+        help=dedent(
+            """
+            The share path on the nfs server (present in /etc/exports)
+            """
+        )
+    )
+
+    nfs_server_ip = Unicode(
+        "",
+        config=True,
+        help=dedent(
+            """
+            Nfs Server IP Address
+            """
+        )
+    )
+
+    nfs_local_mount_path = Unicode(
+        "/mnt",
+        config=True,
+        help=dedent(
+            """
+            Where nfs share will be mounted
+            """
+        )
+    )
+    
+    glusterfs_endpoint = Unicode(
+        config=True,
+        help=dedent(
+            """
+            GlusterFS Endpoint
+            """
+        )
+    )
+    
+    glusterfs_path = Unicode(
+        config=True,
+        help=dedent(
+            """
+            GlusterFS Share Name
+            """
+        )
+    )
+    
+    volume_mountpath = Unicode(
+        "/mnt",
+        config=True,
+        help=dedent(
+            """
+            Volume Mount Path
+            """
+        )
+    )
+
+    volume_mode = Unicode(
+        config=True,
+        help=dedent(
+            """
+            Mode for Volume Mount (nfs, glusterfs or persistent_volume_claim)
+            """
+        )
+    )
+
     hub_ip = Unicode(
         "",
         config=True,
@@ -127,14 +195,22 @@ class KubernetesSpawner(Spawner):
             for env_name, env_value in self.get_env_vars().items():
                 container.add_env(env_name, env_value)
             # Mount volume to persist notebooks
-            if self.persistent_volume_claim_name and self.persistent_volume_claim_path:
-                vol_name = "notebooks"
-                new_pod.add_pvc_volume(vol_name, self.persistent_volume_claim_name)
-                volume_path = self.persistent_volume_claim_path
-                if '{username}' in volume_path:
-                    volume_path = volume_path.format(username=self.user.name)
-                container.add_volume(vol_name, volume_path)
+            vol_name = "notebooks"
 
+            if self.volume_mode == "glusterfs":
+                new_pod.add_glusterfs_volume( vol_name, self.glusterfs_endpoint, self.glusterfs_path)
+
+            if self.volume_mode == "nfs":
+                new_pod.add_nfs_volume(vol_name, self.nfs_server_ip, self.nfs_server_share)
+                
+            if self.volume_mode == "persistent_volume_claim":
+                new_pod.add_pvc_volume(vol_name, self.persistent_volume_claim_name)
+            
+            volume_path = self.volume_mountpath
+            if '{username}' in volume_path:
+                volume_path = volume_path.format(username=self.user.name)
+
+            container.add_volume(vol_name, volume_path)
             new_pod.add_container(container)
 
             self.client.launch_pod(new_pod)
