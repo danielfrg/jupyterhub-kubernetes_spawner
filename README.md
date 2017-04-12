@@ -1,3 +1,5 @@
+# You should be using: https://github.com/jupyterhub/kubespawner
+
 # JupyterHub Kubernetes Spawner
 
 Enables [JupyterHub](https://github.com/jupyterhub/jupyterhub) to spawn user servers inside Kubernetes.
